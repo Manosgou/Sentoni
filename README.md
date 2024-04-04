@@ -1,3 +1,5 @@
+![title](public/images/logo.png)
+
 # Sentoni
 
 _An application to manage the daily tasks of staff._
@@ -24,7 +26,7 @@ The above list consists of the main tools that were involved in the development 
 ## Dev instructions
 
 > Sentoni has been developed with Windows 32bit support in mind. An
-> executable file for Windows can be found under "Releases". However,
+> executable file for Windows can be found under "[Releases](https://github.com/Manosgou/Sentoni/releases)". However,
 > you can build the application from source for your architecture.
 
 ### Get started
@@ -40,7 +42,7 @@ The above list consists of the main tools that were involved in the development 
 
 ## License
 
-Sentoni is licensed under the MIT license. See [LICENSE]() for more information.
+Sentoni is licensed under the MIT license. See [LICENSE](https://github.com/Manosgou/Sentoni/blob/main/LICENSE.txt) for more information.
 
 [React]: https://react.dev/
 [Tauri]: https://tauri.app/
