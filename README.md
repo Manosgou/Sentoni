@@ -26,7 +26,7 @@ The above list consists of the main tools that were involved in the development 
 ## Dev instructions
 
 > Sentoni has been developed with Windows 32bit support in mind. An
-> executable file for Windows can be found under "Releases". However,
+> executable file for Windows can be found under "[Releases](https://github.com/Manosgou/Sentoni/releases)". However,
 > you can build the application from source for your architecture.
 
 ### Get started
