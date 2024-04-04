@@ -841,7 +841,7 @@ const Sentoni = () => {
           </Text>
           <Popover
             overlayInnerStyle={{ padding: 0 }}
-            content={<QRCode value={"Sentoni"} bordered={false} />}
+            content={<QRCode value={"https://github.com/Manosgou/Sentoni"} bordered={false} />}
           >
             <GithubOutlined style={{ fontSize: 20, color: "#d9d9d9" }} />
           </Popover>
