@@ -224,7 +224,28 @@ const EventForm = ({
             >
               <InputNumber min={1} max={365} changeOnWheel />
             </Form.Item>
-            <Form.Item label="Σημειώσεις" name="notes">
+            <Form.Item
+              label="Σημειώσεις"
+              name="notes"
+              extra={
+                <Space style={{ marginTop: 25 }}>
+                  <Text style={{ color: "#bfbfbf" }}>
+                    Προεπιλεγμένες τιμές:
+                  </Text>
+                  {["ΚΑ", "ΑΜΔ", "ΓΟΝ", "ΑΙΜΑ", "ΤΙΜ"].map((note) => {
+                    return (
+                      <Tag
+                        onClick={() =>
+                          form.setFieldValue("notes", `${duration} ${note}`)
+                        }
+                      >
+                        {note}
+                      </Tag>
+                    );
+                  })}
+                </Space>
+              }
+            >
               <Input.TextArea
                 placeholder="Μπορείτε να εισάγετε παρατηρήσεις"
                 style={{ height: 60, resize: "none" }}
