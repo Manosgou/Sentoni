@@ -15,15 +15,18 @@ pub async fn fetch_attendance_book_details(
     let mut packer = Packer::new();
     let options = PackOptions::new();
     let mut conn = state.0.lock().await;
-    let active_personnel: Option<Vec<Personnel>> =
-        Personnel::get_active_personnel(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let active_personnel: Option<Vec<Personnel>> = Personnel::get_active_personnel(conn).await;
     if active_personnel.is_none() {
         return Ok(json!({"error":"Αδυναμία φόρτωσης προσωπικού"}));
     }
     let mut person_events: Vec<PersonEvent> = vec![];
 
     for person in active_personnel.unwrap().iter() {
-        let person_event: Option<Vec<EventDate>> = match ormlite::query_as(
+        let person_event: Option<Vec<EventDate>> = ormlite::query_as(
             "SELECT
             Event.id,
             EventType.id AS event_type_id,
@@ -48,10 +51,7 @@ pub async fn fetch_attendance_book_details(
         .bind(person.id)
         .fetch_all(&mut *conn)
         .await
-        {
-            Ok(event) => Some(event),
-            Err(_) => None,
-        };
+        .ok();
 
         if person_event.is_some() {
             let person_event = person_event.unwrap();

@@ -12,13 +12,17 @@ use tauri::State;
 #[tauri::command]
 pub async fn init_date_events(event_date: String, state: State<'_, Database>) -> Result<bool, ()> {
     let mut conn = state.0.lock().await;
-    let active_personnel = Personnel::get_active_personnel(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    let active_personnel = Personnel::get_active_personnel(conn).await;
     if active_personnel.is_none() {
         return Ok(false);
     }
     for person in active_personnel.unwrap() {
         let event: Option<Event> =
-            Event::get_event(person.id.unwrap(), event_date.as_str(), &mut *conn).await;
+            Event::get_event(person.id.unwrap(), event_date.as_str(), conn).await;
         if event.is_none() {
             let created_event: Option<Event> = Event {
                 id: None,
@@ -29,7 +33,7 @@ pub async fn init_date_events(event_date: String, state: State<'_, Database>) ->
                 event_type: None,
                 notes: None,
             }
-            .create_event(&mut *conn)
+            .create_event(conn)
             .await;
             if created_event.is_none() {
                 return Ok(false);
@@ -49,10 +53,13 @@ pub async fn get_date_events(
     let mut packer = Packer::new();
     let options = PackOptions::new();
     let mut conn = state.0.lock().await;
-    let activet_personnel_counter: Option<u32> =
-        Personnel::count_active_personnel(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let activet_personnel_counter: Option<u32> = Personnel::count_active_personnel(conn).await;
     let active_personnel: Option<Vec<Personnel>> =
-        Personnel::get_active_personnel_paginated(page, limit, &mut *conn).await;
+        Personnel::get_active_personnel_paginated(page, limit, conn).await;
     if active_personnel.is_none() || activet_personnel_counter.is_none() {
         return Ok(json!({"error":"Αδυναμία φόρτωσης προσωπικού"}));
     }
@@ -113,6 +120,10 @@ pub async fn fetch_person_events_history(
     let mut packer = Packer::new();
     let options = PackOptions::new();
     let mut conn = state.0.lock().await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
     let events_history: Option<Vec<PersonEventsHistory>> = ormlite::query_as(
         "SELECT
             Event.id,
@@ -133,7 +144,7 @@ pub async fn fetch_person_events_history(
     .bind(person_id)
     .bind(start_date)
     .bind(end_date)
-    .fetch_all(&mut *conn)
+    .fetch_all(conn)
     .await
     .ok();
 
@@ -157,8 +168,11 @@ pub async fn fetch_monthly_person_events(
     let mut packer = Packer::new();
     let options = PackOptions::new();
     let mut conn = state.0.lock().await;
-    let active_personnel: Option<Vec<Personnel>> =
-        Personnel::get_active_personnel(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let active_personnel: Option<Vec<Personnel>> = Personnel::get_active_personnel(conn).await;
     if active_personnel.is_none() {
         return Ok(json!({"error":"Αδυναμία φόρτωσης προσωπικού"}));
     }
@@ -221,8 +235,11 @@ pub async fn create_empty_event(
     state: State<'_, Database>,
 ) -> Result<serde_json::Value, ()> {
     let mut conn = state.0.lock().await;
-    let count_events: Option<u32> =
-        Event::count_events(p_id, event_date.to_string(), &mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let count_events: Option<u32> = Event::count_events(p_id, event_date.to_string(), conn).await;
     if count_events.is_none() {
         return Ok(json!({"error":"Παρουσιάστηκε σφάλμα"}));
     }
@@ -238,7 +255,7 @@ pub async fn create_empty_event(
         event_type: None,
         notes: None,
     }
-    .create_event(&mut *conn)
+    .create_event(conn)
     .await;
     if created_empty_event.is_some() {
         return Ok(json!({"created":"Επιτυχής δημιουργία γεγονότος"}));
@@ -252,6 +269,10 @@ pub async fn create_event(
     state: State<'_, Database>,
 ) -> Result<serde_json::Value, ()> {
     let mut conn = state.0.lock().await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
     let event: Option<Event> = serde_json::from_value(event).ok();
     if event.is_none() {
         return Ok(json!({"error":"Παρουσιάστηκε σφάλμα"}));
@@ -259,7 +280,7 @@ pub async fn create_event(
     let event = event.unwrap();
 
     let events_counter: Option<u32> =
-        Event::count_events(event.person_id, event.current_date.clone(), &mut *conn).await;
+        Event::count_events(event.person_id, event.current_date.clone(), conn).await;
     if events_counter.is_none() {
         return Ok(json!({"error":"Παρουσιάστηκε σφάλμα"}));
     }
@@ -327,7 +348,7 @@ pub async fn create_event(
                 event_type: event_type.clone(),
                 notes: notes.clone(),
             }
-            .create_event(&mut *conn)
+            .create_event(conn)
             .await;
             if created.is_none() {
                 return Ok(json!({"error":"Παρουσιάστηκε σφάλμα"}));
@@ -349,6 +370,10 @@ pub async fn update_event(
     }
     let event_update = event_update.unwrap();
     let mut conn = state.0.lock().await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
     let old_start_date: Option<NaiveDate> =
         NaiveDate::parse_from_str(&event_update.old_start_date.unwrap(), "%Y-%m-%d").ok();
     let old_end_date: Option<NaiveDate> =
@@ -404,8 +429,7 @@ pub async fn update_event(
         init += Duration::try_days(1).unwrap();
     }
     for date in dates.iter() {
-        let event_exists =
-            Event::event_exists(event_update.person_id, date.clone(), &mut *conn).await;
+        let event_exists = Event::event_exists(event_update.person_id, date.clone(), conn).await;
         if event_exists.is_some() {
             let updated = Event {
                 id: Some(event_exists.unwrap() as u32),
@@ -448,7 +472,7 @@ pub async fn update_event(
                     event_update.old_notes.clone()
                 },
             }
-            .create_event(&mut *conn)
+            .create_event(conn)
             .await;
             if created.is_none() {
                 return Ok(false);
@@ -465,7 +489,11 @@ pub async fn get_event_details(
     state: State<'_, Database>,
 ) -> Result<serde_json::Value, ()> {
     let mut conn = state.0.lock().await;
-    let event_details: Option<EventDetails> = Event::get_event_details_by_id(id, &mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let event_details: Option<EventDetails> = Event::get_event_details_by_id(id, conn).await;
     if event_details.is_some() {
         return Ok(json!(event_details));
     }
@@ -475,6 +503,10 @@ pub async fn get_event_details(
 #[tauri::command]
 pub async fn delete_event_by_id(id: u32, state: State<'_, Database>) -> Result<bool, ()> {
     let mut conn = state.0.lock().await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
     let event: Option<Event> = Event::select()
         .where_("id=?")
         .bind(id)
@@ -498,12 +530,12 @@ pub async fn delete_event_by_id(id: u32, state: State<'_, Database>) -> Result<b
     let end_date = end_date.unwrap();
 
     let current_day_counter: Option<u32> =
-        Event::count_events(person_id, event.current_date.to_string(), &mut *conn).await;
+        Event::count_events(person_id, event.current_date.to_string(), conn).await;
     if current_day_counter.is_none() {
         return Ok(false);
     }
     if (current_day_counter.unwrap() >= 2) && (event_type == None) {
-        let deleted = event.delete_event(&mut *conn).await;
+        let deleted = event.delete_event(conn).await;
         if !deleted {
             return Ok(false);
         }

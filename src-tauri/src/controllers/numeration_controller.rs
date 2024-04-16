@@ -17,7 +17,11 @@ pub async fn get_personnel_numeration(
     let mut packer = Packer::new();
     let options = PackOptions::new();
     let mut conn = state.0.lock().await;
-    let active_personnel = Personnel::get_active_personnel(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let active_personnel = Personnel::get_active_personnel(conn).await;
     if active_personnel.is_none() {
         return Ok(json!({"error":"Αδυναμία φόρτωσης προσωπικού"}));
     }

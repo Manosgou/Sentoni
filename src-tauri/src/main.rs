@@ -6,10 +6,9 @@ mod models;
 mod repositories;
 mod schemas;
 
-use ormlite::sqlite::SqliteConnection;
 use tokio::sync::Mutex;
 
-use crate::database::{empty_conn, load_db, new_db, Database};
+use crate::database::{load_db, new_db, Database};
 
 use crate::controllers::event_controller::{
     create_empty_event, create_event, delete_event_by_id, export_person_events_history,
@@ -37,10 +36,8 @@ use crate::controllers::attendance_book_controller::{
     fetch_attendance_book_details, generate_attendance_book,
 };
 
-#[tokio::main]
-async fn main() -> Result<(), ()> {
-    let empty_conn: SqliteConnection = empty_conn().await;
-    let app_state: Database = Database(Mutex::new(empty_conn));
+fn main() {
+    let app_state: Database = Database(Mutex::new(None));
     tauri::Builder::default()
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
@@ -84,5 +81,4 @@ async fn main() -> Result<(), ()> {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-    Ok(())
 }

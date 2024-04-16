@@ -1,7 +1,7 @@
 use crate::models::Event;
 use crate::schemas::EventDetails;
-use ormlite::model::*;
 use ormlite::sqlite::SqliteConnection;
+use ormlite::Model;
 
 impl Event {
     pub async fn create_event(self, conn: &mut SqliteConnection) -> Option<Event> {

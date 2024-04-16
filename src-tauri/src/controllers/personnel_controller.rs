@@ -14,9 +14,13 @@ pub async fn create_person(
         return Ok(false);
     }
     let mut conn = state.0.lock().await;
-    let person = person.unwrap().create_person(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    let person = person.unwrap().create_person(conn).await;
     if person.is_some() {
-        return Ok(Hierarchy::create_hierarchy(person.unwrap().id.unwrap(), &mut *conn).await);
+        return Ok(Hierarchy::create_hierarchy(person.unwrap().id.unwrap(), conn).await);
     }
     Ok(false)
 }
@@ -35,13 +39,17 @@ pub async fn import_multiple_persons(
         .has_headers(true)
         .from_reader(csv_file.unwrap());
     let mut conn = state.0.lock().await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
     for result in rdr.deserialize() {
         let person: Option<Personnel> = result.ok();
         if person.is_some() {
             let person = person.unwrap();
-            let created_person = person.create_person(&mut *conn).await;
+            let created_person = person.create_person(conn).await;
             if created_person.is_some() {
-                Hierarchy::create_hierarchy(created_person.unwrap().id.unwrap(), &mut *conn).await;
+                Hierarchy::create_hierarchy(created_person.unwrap().id.unwrap(), conn).await;
             }
         } else {
             return Ok(false);
@@ -57,8 +65,12 @@ pub async fn get_all_personnel_paginated(
     state: State<'_, Database>,
 ) -> Result<serde_json::Value, ()> {
     let mut conn = state.0.lock().await;
-    let personnel_counter = Personnel::count_personnel(&mut *conn).await;
-    let personnel = Personnel::get_all_personnel_paginated(page, limit, &mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let personnel_counter = Personnel::count_personnel(conn).await;
+    let personnel = Personnel::get_all_personnel_paginated(page, limit, conn).await;
     if personnel.is_some() {
         return Ok(json!({"personnelCounter":personnel_counter,"personnel":personnel}));
     }
@@ -75,7 +87,11 @@ pub async fn delete_person(
         return Ok(false);
     }
     let mut conn = state.0.lock().await;
-    Ok(person.unwrap().delete_person(&mut *conn).await)
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    Ok(person.unwrap().delete_person(conn).await)
 }
 
 #[tauri::command]
@@ -88,13 +104,21 @@ pub async fn update_person(
         return Ok(false);
     }
     let mut conn = state.0.lock().await;
-    Ok(person.unwrap().update_person(&mut *conn).await)
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    Ok(person.unwrap().update_person(conn).await)
 }
 
 #[tauri::command]
 pub async fn export_personnel(path: String, state: State<'_, Database>) -> Result<bool, ()> {
     let mut conn = state.0.lock().await;
-    let personnel = Personnel::get_all_personnel(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    let personnel = Personnel::get_all_personnel(conn).await;
     if personnel.is_none() {
         return Ok(false);
     }

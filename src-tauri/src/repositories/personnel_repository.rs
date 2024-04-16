@@ -1,6 +1,6 @@
 use crate::models::Personnel;
-use ormlite::model::*;
 use ormlite::sqlite::SqliteConnection;
+use ormlite::Model;
 
 impl Personnel {
     pub async fn create_person(self, conn: &mut SqliteConnection) -> Option<Personnel> {

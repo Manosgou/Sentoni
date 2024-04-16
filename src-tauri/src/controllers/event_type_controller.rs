@@ -14,7 +14,11 @@ pub async fn create_event_type(
         return Ok(false);
     }
     let mut conn = state.0.lock().await;
-    Ok(event_type.unwrap().create_event_type(&mut *conn).await)
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    Ok(event_type.unwrap().create_event_type(conn).await)
 }
 
 #[tauri::command]
@@ -23,9 +27,13 @@ pub async fn get_all_event_types_paginated(
     state: State<'_, Database>,
 ) -> Result<serde_json::Value, ()> {
     let mut conn = state.0.lock().await;
-    let event_types_counter: Option<u32> = EventType::count_event_types(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let event_types_counter: Option<u32> = EventType::count_event_types(conn).await;
     let event_types: Option<Vec<EventType>> =
-        EventType::get_all_event_types_paginated(page, &mut *conn).await;
+        EventType::get_all_event_types_paginated(page, conn).await;
     if event_types_counter.is_some() && event_types.is_some() {
         return Ok(
             json!({"eventTypesCounter":event_types_counter.unwrap(),"eventTypes":event_types.unwrap()}),
@@ -37,7 +45,11 @@ pub async fn get_all_event_types_paginated(
 #[tauri::command]
 pub async fn get_all_event_types(state: State<'_, Database>) -> Result<serde_json::Value, ()> {
     let mut conn = state.0.lock().await;
-    let event_types: Option<Vec<EventType>> = EventType::get_all_event_types(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(json!({"error":"Αδυναμία φόρτωσης της βάσης δεδομένων"}));
+    }
+    let conn = conn.as_mut().unwrap();
+    let event_types: Option<Vec<EventType>> = EventType::get_all_event_types(conn).await;
     if event_types.is_some() {
         return Ok(json!(event_types.unwrap()));
     }
@@ -54,7 +66,11 @@ pub async fn delete_event_type(
         return Ok(false);
     }
     let mut conn = state.0.lock().await;
-    Ok(event_type.unwrap().delete_event_type(&mut *conn).await)
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    Ok(event_type.unwrap().delete_event_type(conn).await)
 }
 
 #[tauri::command]
@@ -67,13 +83,21 @@ pub async fn update_event_type(
         return Ok(false);
     }
     let mut conn = state.0.lock().await;
-    Ok(event_type.unwrap().update_event_type(&mut *conn).await)
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    Ok(event_type.unwrap().update_event_type(conn).await)
 }
 
 #[tauri::command]
 pub async fn export_event_types(path: String, state: State<'_, Database>) -> Result<bool, ()> {
     let mut conn = state.0.lock().await;
-    let event_types = EventType::get_all_event_types(&mut *conn).await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
+    let event_types = EventType::get_all_event_types(conn).await;
     if event_types.is_none() {
         return Ok(false);
     }
@@ -113,11 +137,15 @@ pub async fn import_multiple_event_types(
         .from_reader(csv_file.unwrap());
 
     let mut conn = state.0.lock().await;
+    if conn.is_none() {
+        return Ok(false);
+    }
+    let conn = conn.as_mut().unwrap();
     for result in rdr.deserialize() {
         let event_type: Option<EventType> = result.ok();
         if event_type.is_some() {
             let event_type = event_type.unwrap();
-            let created_event_type = event_type.create_event_type(&mut *conn).await;
+            let created_event_type = event_type.create_event_type(conn).await;
             if !created_event_type {
                 return Ok(false);
             }

@@ -1,7 +1,6 @@
 use crate::models::Reminder;
-use ormlite::model::{HasModelBuilder, ModelBuilder};
+use ormlite::model::{HasModelBuilder, Model, ModelBuilder};
 use ormlite::sqlite::SqliteConnection;
-use ormlite::Model;
 
 impl Reminder {
     pub async fn create_reminder(&self, conn: &mut SqliteConnection) -> bool {

@@ -1,7 +1,7 @@
 use crate::models::Hierarchy;
 use crate::schemas::HierarchyDetails;
-use ormlite::model::*;
 use ormlite::sqlite::SqliteConnection;
+use ormlite::Model;
 
 impl Hierarchy {
     pub async fn create_hierarchy(person_id: u32, conn: &mut SqliteConnection) -> bool {

@@ -34,59 +34,40 @@ const  CREATE_TABLE_SQL: &str =
     CREATE INDEX IF NOT EXISTS event_idx ON Event (person_id,event_type);
     CREATE INDEX IF NOT EXISTS personnel_idx ON Personnel (active);";
 
-pub struct Database(pub Mutex<SqliteConnection>);
-
-pub async fn empty_conn() -> SqliteConnection {
-    return match ormlite::sqlite::SqliteConnection::connect(String::new().as_str()).await {
-        Ok(conn) => conn,
-        Err(_) => panic!("Error creating empty connection"),
-    };
-}
+pub struct Database(pub Mutex<Option<SqliteConnection>>);
 
 #[tauri::command]
 pub async fn load_db(value: &str, state: State<'_, Database>) -> Result<bool, ()> {
     let mut db = state.0.lock().await;
     let conn: Option<SqliteConnection> =
-        match ormlite::sqlite::SqliteConnection::connect(value).await {
-            Ok(db) => Some(db),
-            Err(_) => None,
-        };
+        ormlite::sqlite::SqliteConnection::connect(value).await.ok();
     if conn.is_some() {
-        *db = conn.unwrap();
+        *db = Some(conn.unwrap());
     } else {
         return Ok(false);
     }
-    return Ok(
-        match ormlite::query(CREATE_TABLE_SQL).execute(&mut *db).await {
-            Ok(_) => true,
-            Err(_) => false,
-        },
-    );
+    return Ok(ormlite::query(CREATE_TABLE_SQL)
+        .execute(&mut *db.as_mut().unwrap())
+        .await
+        .is_ok());
 }
 
 #[tauri::command]
 pub async fn new_db(value: &str, state: State<'_, Database>) -> Result<bool, ()> {
     let file = File::create(value);
-    return Ok(match file {
-        Ok(_) => {
-            let mut db = state.0.lock().await;
-            let conn: Option<SqliteConnection> =
-                match ormlite::sqlite::SqliteConnection::connect(value).await {
-                    Ok(db) => Some(db),
-                    Err(_) => None,
-                };
-            if conn.is_some() {
-                *db = conn.unwrap();
-            } else {
-                return Ok(false);
-            }
-            return Ok(
-                match ormlite::query(CREATE_TABLE_SQL).execute(&mut *db).await {
-                    Ok(_) => true,
-                    Err(_) => false,
-                },
-            );
+    if file.is_ok() {
+        let mut db = state.0.lock().await;
+        let conn: Option<SqliteConnection> =
+            ormlite::sqlite::SqliteConnection::connect(value).await.ok();
+        if conn.is_some() {
+            *db = Some(conn.unwrap());
+        } else {
+            return Ok(false);
         }
-        Err(_) => false,
-    });
+        return Ok(ormlite::query(CREATE_TABLE_SQL)
+            .execute(&mut *db.as_mut().unwrap())
+            .await
+            .is_ok());
+    }
+    Ok(false)
 }

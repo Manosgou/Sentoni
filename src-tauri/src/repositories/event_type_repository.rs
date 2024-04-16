@@ -1,6 +1,6 @@
 use crate::models::EventType;
-use ormlite::model::*;
 use ormlite::sqlite::SqliteConnection;
+use ormlite::Model;
 
 impl EventType {
     pub async fn create_event_type(self, conn: &mut SqliteConnection) -> bool {
