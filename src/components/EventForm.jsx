@@ -235,6 +235,7 @@ const EventForm = ({
                   {["ΚΑ", "ΑΜΔ", "ΓΟΝ", "ΑΙΜΑ", "ΤΙΜ"].map((note) => {
                     return (
                       <Tag
+                        color="processing"
                         onClick={() =>
                           form.setFieldValue("notes", `${duration} ${note}`)
                         }
