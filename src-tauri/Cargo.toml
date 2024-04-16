@@ -1,10 +1,10 @@
 [package]
 name = "sentoni"
-version = "0.0.0"
+version = "1.0.0"
 description = "Personnel management software"
 authors = ["Manos Gouvrikos"]
 license = "MIT"
-repository = ""
+repository = "https://github.com/Manosgou/Sentoni"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -36,7 +36,8 @@ open = "5.0.1"
 custom-protocol = ["tauri/custom-protocol"]
 
 [profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-strip = true
+panic = "abort" # Strip expensive panic clean-up logic
+codegen-units = 1 # Compile crates one after another so the compiler can optimize better
+lto = true # Enables link to optimizations
+opt-level = "s" # Optimize for binary size
+strip = true # Remove debug symbols
