@@ -14,6 +14,7 @@
     "@ant-design/pro-components": "^2.6.43",
     "@dnd-kit/core": "^6.1.0",
     "@tauri-apps/api": "^1.5.1",
+    "@tauri-apps/cli": "^1.5.11",
     "@twocatmoon/react-use-konami-code": "^0.1.1",
     "ag-grid-react": "^31.0.3",
     "antd": "^5.15.3",
