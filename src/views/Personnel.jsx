@@ -293,27 +293,14 @@ const Personnel = () => {
             >
               Εισαγωγή
             </Button>
-            <Popconfirm
-              placement="bottomLeft"
-              title="Εισαγωγή προσωπικού"
-              description={`Η φόρτωση πολλαπλού προσωπικού γίνετε με την χρήση αρχείων csv. Το
-            περιεχόμενο των αρχείων βασίζεται στο ακόλουθο πρότυπο
-            'Ονοματεπώνυμο,Παρατηρήσεις,Κατάσταση'. Στην περίπτωση του πεδίου
-            "Κατάσταση" συμπληρώνουμε 1 αν είναι ενεργός και 0 αν είναι
-            ανενεργός. Το πεδίο "Παρατηρήσεις" μπορεί να παραμείνει κενό όχι
-              όμως να παρακαμφεί. π.χ Μάνος Γκουβρίκος,,1`}
-              onConfirm={importPersonnel}
-              okText="Φόρτωση"
-              cancelText="Άκυρο"
+            <Button
+              loading={loading}
+              type="primary"
+              onClick={importPersonnel}
+              icon={<UsergroupAddOutlined />}
             >
-              <Button
-                loading={loading}
-                type="primary"
-                icon={<UsergroupAddOutlined />}
-              >
-                Φόρτωση
-              </Button>
-            </Popconfirm>
+              Φόρτωση
+            </Button>
             <Popconfirm
               placement="bottomLeft"
               title="Εξαγωγή προσωπικού"

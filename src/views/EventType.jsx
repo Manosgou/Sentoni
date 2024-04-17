@@ -226,20 +226,14 @@ const EventType = () => {
           >
             Δημιουργία
           </Button>
-          <Popconfirm
-            placement="bottomLeft"
-            title="Φόρτωση ειδών γεγονότων"
-            description="Η φόρτωση πολλαπλών ειδών γεγονότων γίνετε με την χρήση αρχείων csv. Το
-          περιεχόμενο των αρχείων βασίζεται στο ακόλουθο πρότυπο
-          'Όνομα είδους γεγονότος,Χρώμα'. Και οι δύο οι τιμές ειναι υποχρεωτικές, όπως επίσης η τιμή του χρώματος πρέπει αν είναι δεκαεξαδική μοφή"
-            onConfirm={importEventTypes}
-            okText="Φόρτωση"
-            cancelText="Άκυρο"
+          <Button
+            loading={loading}
+            onClick={importEventTypes}
+            type="primary"
+            icon={<TagsOutlined />}
           >
-            <Button loading={loading} type="primary" icon={<TagsOutlined />}>
-              Φόρτωση
-            </Button>
-          </Popconfirm>
+            Φόρτωση
+          </Button>
           <Popconfirm
             placement="bottomLeft"
             title="Εξαγωγή ειδών γεγονότων"
