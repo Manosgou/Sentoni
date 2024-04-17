@@ -11,7 +11,8 @@ export default defineConfig(async () => ({
     warmup: {
       clientFiles: [
         "./src/components/EventForm.jsx",
-        "./src/components/EventForm.jsx",
+        "./src/views/MonthlyEvents.jsx",
+        "./src/views/Sentoni.jsx",
       ],
     },
   },
