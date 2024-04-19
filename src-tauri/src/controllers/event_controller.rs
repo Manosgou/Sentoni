@@ -243,9 +243,28 @@ pub async fn create_empty_event(
     if count_events.is_none() {
         return Ok(json!({"error":"Παρουσιάστηκε σφάλμα"}));
     }
+
     if count_events.unwrap() >= 5 {
         return Ok(json!({"max":"Μέγιστος αριθμός γεγονότων"}));
     }
+
+    let person_events: Option<Vec<Event>> = Event::select()
+        .where_("Event.person_id= ? AND Event.current_date=?")
+        .bind(p_id)
+        .bind(event_date)
+        .fetch_all(&mut *conn)
+        .await
+        .ok();
+
+    if person_events.is_none() {
+        return Ok(json!({"error":"Παρουσιάστηκε σφάλμα"}));
+    }
+    let events = &person_events.unwrap();
+    let empty_event = events.iter().find(|event| event.event_type.is_none());
+    if empty_event.is_some() {
+        return Ok(json!({"error":"Παρουσιάστηκε σφάλμα"}));
+    }
+
     let created_empty_event = Event {
         id: None,
         person_id: p_id,
@@ -255,7 +274,7 @@ pub async fn create_empty_event(
         event_type: None,
         notes: None,
     }
-    .create_event(conn)
+    .create_event(&mut *conn)
     .await;
     if created_empty_event.is_some() {
         return Ok(json!({"created":"Επιτυχής δημιουργία γεγονότος"}));

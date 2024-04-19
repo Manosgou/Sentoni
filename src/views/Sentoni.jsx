@@ -200,14 +200,21 @@ const Sentoni = () => {
                         {eventStatus(event)}
                       </Tag>
                       {event.eventTypeId || record.events.length >= 2 ? (
-                        <Popconfirm
-                          title="Η ενέργεια αυτή είναι μη αναστρέψιμη "
-                          onConfirm={() => deleteEvent(event.id)}
-                          okText="Διαγραφή"
-                          cancelText="Άκυρο"
-                        >
-                          <DeleteTwoTone twoToneColor={"#C70000"} />
-                        </Popconfirm>
+                        event.eventTypeId ? (
+                          <Popconfirm
+                            title="Η ενέργεια αυτή είναι μη αναστρέψιμη "
+                            onConfirm={() => deleteEvent(event.id)}
+                            okText="Διαγραφή"
+                            cancelText="Άκυρο"
+                          >
+                            <DeleteTwoTone twoToneColor={"#C70000"} />
+                          </Popconfirm>
+                        ) : (
+                          <DeleteTwoTone
+                            twoToneColor={"#C70000"}
+                            onClick={() => deleteEvent(event.id)}
+                          />
+                        )
                       ) : null}
                     </Space>
                   );
@@ -221,25 +228,26 @@ const Sentoni = () => {
   });
 
   const EventsCellActions = memo(({ record }) => {
-    return (
-      <Space size="middle">
-        {record.events.length < 5 ? (
-          <Button
-            size="small"
-            type="primary"
-            ghost={isWeekEnd(curDate)}
-            onClick={() => createEmptyEvent(record.id)}
-            icon={<PlusCircleOutlined />}
-          >
-            Προσθήκη γεγονότος
-          </Button>
-        ) : (
-          <Tag icon={<ExclamationCircleOutlined />} color="warning">
-            Μέγιστο αριθμός γεγονότων
-          </Tag>
-        )}
-      </Space>
-    );
+    if (record.events.length >= 5) {
+      return (
+        <Tag icon={<ExclamationCircleOutlined />} color="warning">
+          Μέγιστο αριθμός γεγονότων
+        </Tag>
+      );
+    } else {
+      return (
+        <Button
+          size="small"
+          type="primary"
+          ghost={isWeekEnd(curDate)}
+          onClick={() => createEmptyEvent(record.id)}
+          icon={<PlusCircleOutlined />}
+          disabled={record.events.some((event) => !event.eventTypeId)}
+        >
+          Προσθήκη γεγονότος
+        </Button>
+      );
+    }
   });
 
   const columns = [
